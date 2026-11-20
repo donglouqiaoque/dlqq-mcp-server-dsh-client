@@ -1,0 +1,52 @@
+Third-party notices for dlqq-mcp-client
+=======================================
+
+This package is a DSH plugin forked from the official MCP client.
+
+Derived work
+------------
+lib/official/ is derived from @deepseek-ai/dsh-mcp-client (MIT,
+Copyright (c) 2026 DeepSeek). The only functional change is the session id
+injection into params._meta; connection, reconnect, diagnostics, credential
+scrubbing and tool bridging are upstream code.
+Source: https://github.com/deepseek-ai/deepseek-harness (packages/mcp/mcp-client)
+The upstream MIT license text is kept at lib/official/LICENSE.
+
+Bundled dependencies
+--------------------
+The plugin bundle (dist/plugin.js) is produced by esbuild with host packages
+marked external, so the following are resolved at runtime from this package's
+node_modules (installed) or from the DSH installation:
+
+MIT:
+  @modelcontextprotocol/client 2.2.0
+  @deepseek-ai/schemastery ~3.19.0
+
+Peer dependencies (provided by the DSH installation, not bundled)
+-----------------------------------------------------------------
+MIT:
+  @deepseek-ai/cordis ~4.1.0
+  @deepseek-ai/dsh-attachment 0.2.2-rc.5
+  @deepseek-ai/dsh-credentials 0.2.2-rc.5
+  @deepseek-ai/dsh-llm 0.2.2-rc.5
+  @deepseek-ai/dsh-mcp-resources 0.2.2-rc.5
+  @deepseek-ai/dsh-scope 0.2.2-rc.5
+  @deepseek-ai/dsh-subprocess 0.2.2-rc.5
+  @deepseek-ai/dsh-system-prompt 0.2.2-rc.5
+  @deepseek-ai/dsh-timeout 0.2.2-rc.5
+  @deepseek-ai/dsh-tools 0.2.2-rc.5
+  @deepseek-ai/dsh-util-values 0.2.2-rc.5
+
+Build-time dependencies (not distributed)
+-----------------------------------------
+MIT:
+  esbuild ^0.25.0 (https://esbuild.github.io/)
+
+Runtime
+-------
+Node.js (MIT-style license, https://nodejs.org/) is the plugin host runtime and
+is not distributed with this package.
+
+Note
+----
+Re-verify the licenses and versions if dependencies change.

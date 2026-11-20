@@ -1,0 +1,24 @@
+# dlqq-mcp-client - DSH bundle patch
+#
+# Installs a session-aware MCP client bridge. The bridge behaves like the
+# official @deepseek-ai/dsh-mcp-client, but adds the caller's session id to
+# every tools/call request as params._meta[sessionMetaKey].
+#
+# The row below ships disabled and with placeholder paths: this file must stay
+# machine-independent. After installing the bundle, fill command/args in
+# Plugins > dlqq-mcp-client > Configure, then enable the row and restart DSH.
+- insert:
+    - id: dlqq-mcp-client
+      name: dlqq-mcp-client
+      # Shipped disabled on purpose: the deployment paths below are placeholders.
+      # Install the bundle, fill command/args in Plugins, then enable this row.
+      disabled: true
+      config:
+        serverName: dlqq-mcp
+        transport: stdio
+        command: '<deploy-dir>/java/bin/java.exe'
+        args:
+          - '-Dfile.encoding=UTF-8'
+          - '-jar'
+          - '<deploy-dir>/dlqq_mcp_server.jar'
+        sessionMetaKey: 'dsh/sessionId'

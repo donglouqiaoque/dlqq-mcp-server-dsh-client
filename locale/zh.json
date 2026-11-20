@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "dlqq-mcp-client",
+    "description": "在 MCP 调用中注入会话 ID，使单个 MCP 服务进程按对话隔离工作区。",
+    "detail": "docs/DETAIL.md"
+  }
+}

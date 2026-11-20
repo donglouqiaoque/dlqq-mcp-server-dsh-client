@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "dlqq-mcp-client",
+    "description": "Injects a session id into MCP calls so one MCP server process can isolate a workspace per conversation.",
+    "detail": "docs/DETAIL.md"
+  }
+}
