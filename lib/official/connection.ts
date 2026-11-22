@@ -188,6 +188,7 @@ export function startConnection(ctx: Context, config: Config, policy: ResolvedRe
           toolCallTimeoutMs: config.toolCallTimeoutMs,
           sessionMetaKey: config.sessionMetaKey,
           agentMetaKey: config.agentMetaKey,
+          workspaceMetaKey: config.workspaceMetaKey,
           signal,
           ...config.expandTemplates ? { redact: (text: string) => binding.redact(text) } : {},
         }, disposers, () => isCurrent(record))

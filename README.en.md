@@ -101,14 +101,19 @@ args: ['-Dfile.encoding=UTF-8', '-jar', '<deploy-dir>/dlqq_mcp_server.jar']
 | `closeTimeoutMs` | no | `5000` | Transport close timeout |
 | `sessionMetaKey` | no | `dsh/sessionId` | `_meta` key for the session id; empty disables it |
 | `agentMetaKey` | no | `dsh/agentId` | `_meta` key for the agent id; empty disables it |
+| `workspaceMetaKey` | no | `dsh/workspace` | `_meta` key for the session workspace dir (cwd); empty disables it |
 | `maxInstructionBytes` | no | `32768` | Maximum server instruction bytes |
 | `reconnect` | no | enabled | Reconnect policy (`enabled`/`initialDelayMs`/`maxDelayMs`/`maxAttempts`) |
 
 ## Contract with the server
 
-- Both sides must agree on the `_meta` keys (defaults `dsh/sessionId` and `dsh/agentId`);
-- The server keeps one workspace per conversation × agent; when neither key is present it
+- Both sides must agree on the `_meta` keys (defaults `dsh/sessionId`, `dsh/agentId`,
+  `dsh/workspace`);
+- The server keeps one workspace per conversation × agent; when none of the keys is present it
   falls back to the process-level default session (clients without multi-session support);
+- `dsh/workspace` carries the session cwd (`session.header.cwd`, absolute, may be absent):
+  the server initializes that session's workspace from it on the **first request** (invalid,
+  missing or `.dlqq`-nested paths silently fall back to the default workspace);
 - Session binding is driven entirely by `_meta`; no extra initialization call is
   required.
 

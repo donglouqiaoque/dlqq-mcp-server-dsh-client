@@ -27,16 +27,18 @@ import { describeError, McpLocalError } from './diagnostic.ts'
 
 /**
  * Build the `_meta` fragment for one tools/call request from the execution's
- * owning agent. Emits the session key and (when available) the agent key so the
- * server can isolate conversations × agents. Returns undefined when neither is
- * available (for example a non-agent caller).
+ * owning agent. Emits the session key, the agent key and (when available) the
+ * session's workspace directory so the server can isolate conversations × agents
+ * and initialize each session's workspace from the session cwd.
+ * Returns undefined when none is available (for example a non-agent caller).
  *
- * This is the DLQQ fork's only behavioral addition to the official bridge.
+ * This is the DLQQ fork's behavioral addition to the official bridge.
  */
 function sessionMetaOf(
   execution: ToolExecution,
   sessionKey: string | undefined,
   agentKey: string | undefined,
+  workspaceKey: string | undefined,
 ): Record<string, string> | undefined {
   const meta: Record<string, string> = {}
   const sessionId = execution.agent?.session?.id
@@ -46,6 +48,11 @@ function sessionMetaOf(
   const agentId = execution.agent?.id
   if (agentKey !== undefined && agentKey !== '' && typeof agentId === 'string' && agentId.length > 0) {
     meta[agentKey] = agentId
+  }
+  // Session creation metadata carries the absolute working directory (may be absent).
+  const workspace = execution.agent?.session?.header?.cwd
+  if (workspaceKey !== undefined && workspaceKey !== '' && typeof workspace === 'string' && workspace.length > 0) {
+    meta[workspaceKey] = workspace
   }
   return Object.keys(meta).length === 0 ? undefined : meta
 }
@@ -58,6 +65,8 @@ export interface ToolBridgeOptions {
   sessionMetaKey?: string
   /** `_meta` key carrying the calling agent id; omit or empty to send none. */
   agentMetaKey?: string
+  /** `_meta` key carrying the calling session workspace dir; omit or empty to send none. */
+  workspaceMetaKey?: string
   /** Generation cancellation combined with each tool execution's signal. */
   signal: AbortSignal
   /**
@@ -179,7 +188,7 @@ export async function syncTools(
       outputSchema: tool.outputSchema,
       taskRequired: tool.execution?.taskSupport === 'required',
       call: async (args, execution) => {
-        const sessionMeta = sessionMetaOf(execution, opts.sessionMetaKey, opts.agentMetaKey)
+        const sessionMeta = sessionMetaOf(execution, opts.sessionMetaKey, opts.agentMetaKey, opts.workspaceMetaKey)
         try {
           const result = await client.callTool(
             {

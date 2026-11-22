@@ -94,6 +94,8 @@ export interface StdioConfig {
   sessionMetaKey?: string
   /** `_meta` key carrying the calling agent id; empty disables agent metadata. */
   agentMetaKey?: string
+  /** `_meta` key carrying the calling session workspace dir; empty disables workspace metadata. */
+  workspaceMetaKey?: string
   /** Optional budget for one connection attempt plus its initial tool sync, in milliseconds. */
   startupTimeoutMs?: number
   /** Budget for transport closure and local cleanup, in milliseconds (default 5000). */
@@ -128,6 +130,8 @@ export interface StreamableHttpConfig {
   sessionMetaKey?: string
   /** `_meta` key carrying the calling agent id; empty disables agent metadata. */
   agentMetaKey?: string
+  /** `_meta` key carrying the calling session workspace dir; empty disables workspace metadata. */
+  workspaceMetaKey?: string
   /** Optional budget for one connection attempt plus its initial tool sync, in milliseconds. */
   startupTimeoutMs?: number
   /** Budget for transport closure and local cleanup, in milliseconds (default 5000). */
@@ -177,6 +181,7 @@ export const Config = z.union([
     toolCallTimeoutMs: z.number().default(DEFAULT_TOOL_CALL_TIMEOUT_MS),
     sessionMetaKey: z.string().default('dsh/sessionId'),
     agentMetaKey: z.string().default('dsh/agentId'),
+    workspaceMetaKey: z.string().default('dsh/workspace'),
     startupTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS),
     closeTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS).default(DEFAULT_CLOSE_TIMEOUT_MS),
     expandTemplates: z.boolean().default(false),
@@ -192,6 +197,7 @@ export const Config = z.union([
     toolCallTimeoutMs: z.number().default(DEFAULT_TOOL_CALL_TIMEOUT_MS),
     sessionMetaKey: z.string().default('dsh/sessionId'),
     agentMetaKey: z.string().default('dsh/agentId'),
+    workspaceMetaKey: z.string().default('dsh/workspace'),
     startupTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS),
     closeTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS).default(DEFAULT_CLOSE_TIMEOUT_MS),
     expandTemplates: z.boolean().default(false),

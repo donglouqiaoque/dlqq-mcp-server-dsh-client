@@ -17,13 +17,16 @@ DSH 官方 `@deepseek-ai/dsh-mcp-client` 每个插件条目只建立一条连接
 ```
 DSH 工具调用
   └── 插件 call 处理器（接收 execution）
-        ├── 读取 execution.agent.session.id（会话）与 execution.agent.id（Agent）
-        ├── 组装 params._meta：sessionMetaKey=会话ID、agentMetaKey=AgentID
+        ├── 读取 execution.agent.session.id（会话）、execution.agent.id（Agent）、
+        │         execution.agent.session.header.cwd（会话工作目录，可能为空）
+        ├── 组装 params._meta：sessionMetaKey=会话ID、agentMetaKey=AgentID、
+        │         workspaceMetaKey=会话 cwd（绝对路径）
         └── client.callTool({ name, arguments, _meta })
-              └── MCP 服务端：按「会话 × Agent」路由到对应工作区
+              └── MCP 服务端：按「会话 × Agent」路由；会话首次请求时用 cwd 初始化该会话工作区
 ```
 
 服务端未收到任何 `_meta` 标识时回退到进程级默认会话（兼容不支持多会话的客户端）。
+`dsh/workspace` 只用于初始化会话工作区：路径不存在/非法/位于 `.dlqq` 下时服务端静默回退。
 
 ## 实现方式
 
@@ -31,12 +34,9 @@ DSH 工具调用
 
 | 文件 | 改动 |
 |---|---|
-| `lib/official/tools.ts` | 新增 `sessionMetaOf()`；`callTool` 参数加入 `_meta`（会话键 + Agent 键） |
-| `lib/official/connection.ts` | 把 `config.sessionMetaKey` / `config.agentMetaKey` 传入工具桥接 |
-| `lib/official/index.ts` | 配置增加 `sessionMetaKey`（默认 `dsh/sessionId`）与 `agentMetaKey`（默认 `dsh/agentId`） |
-
-其余逻辑（连接、重连、诊断、凭据清洗、工具注册、结果投影）与上游一致。
-构建由 esbuild 打包成单文件 `dist/plugin.js`。
+| `lib/official/tools.ts` | 新增 `sessionMetaOf()`；`callTool` 参数加入 `_meta`（会话键 + Agent 键 + 会话工作区键） |
+| `lib/official/connection.ts` | 把 `config.sessionMetaKey` / `config.agentMetaKey` / `config.workspaceMetaKey` 传入工具桥接 |
+| `lib/official/index.ts` | 配置增加 `sessionMetaKey`（默认 `dsh/sessionId`）、`agentMetaKey`（默认 `dsh/agentId`）、`workspaceMetaKey`（默认 `dsh/workspace`） |
 
 ## 当前状态
 
@@ -92,13 +92,16 @@ npm run build
 | `closeTimeoutMs` | 否 | `5000` | 关闭传输超时 |
 | `sessionMetaKey` | 否 | `dsh/sessionId` | 携带会话 ID 的 `_meta` 键名；置空则不发送 |
 | `agentMetaKey` | 否 | `dsh/agentId` | 携带 Agent ID 的 `_meta` 键名；置空则不发送 |
+| `workspaceMetaKey` | 否 | `dsh/workspace` | 携带会话工作目录（`session.header.cwd`）的 `_meta` 键名；置空则不发送 |
 | `maxInstructionBytes` | 否 | `32768` | 服务器指令最大字节数 |
 | `reconnect` | 否 | 启用 | 重连策略 |
 
 ## 与 MCP 服务端的约定
 
-- `_meta` 键名必须与服务端一致（默认 `dsh/sessionId` 与 `dsh/agentId`）；
-- 服务端按「会话 × Agent」维护工作区，两个键都不存在时回退到进程级默认会话；
+- `_meta` 键名必须与服务端一致（默认 `dsh/sessionId`、`dsh/agentId`、`dsh/workspace`）；
+- 服务端按「会话 × Agent」维护工作区，三个键都不存在时回退到进程级默认会话；
+- `dsh/workspace` 用于会话工作区初始化：会话第一次请求时由服务端校验并应用，
+  路径不存在/非法/位于 `.dlqq` 下时静默回退到默认工作区；
 - 服务端初始化后不要求客户端再做额外调用，会话绑定完全由 `_meta` 驱动。
 
 ## 许可证

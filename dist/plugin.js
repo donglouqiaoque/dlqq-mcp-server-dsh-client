@@ -308,7 +308,7 @@ import { isDeepStrictEqual } from "node:util";
 import { specTypeSchemas } from "@modelcontextprotocol/client";
 import { isImageAdmissionError } from "@deepseek-ai/dsh-attachment";
 import { assertSupportedJsonSchema } from "@deepseek-ai/dsh-tools";
-function sessionMetaOf(execution, sessionKey, agentKey) {
+function sessionMetaOf(execution, sessionKey, agentKey, workspaceKey) {
   const meta = {};
   const sessionId = execution.agent?.session?.id;
   if (sessionKey !== void 0 && sessionKey !== "" && typeof sessionId === "string" && sessionId.length > 0) {
@@ -317,6 +317,10 @@ function sessionMetaOf(execution, sessionKey, agentKey) {
   const agentId = execution.agent?.id;
   if (agentKey !== void 0 && agentKey !== "" && typeof agentId === "string" && agentId.length > 0) {
     meta[agentKey] = agentId;
+  }
+  const workspace = execution.agent?.session?.header?.cwd;
+  if (workspaceKey !== void 0 && workspaceKey !== "" && typeof workspace === "string" && workspace.length > 0) {
+    meta[workspaceKey] = workspace;
   }
   return Object.keys(meta).length === 0 ? void 0 : meta;
 }
@@ -357,7 +361,7 @@ async function syncTools(client, ctx, opts, previous, eligible = () => true) {
       outputSchema: tool.outputSchema,
       taskRequired: tool.execution?.taskSupport === "required",
       call: async (args, execution) => {
-        const sessionMeta = sessionMetaOf(execution, opts.sessionMetaKey, opts.agentMetaKey);
+        const sessionMeta = sessionMetaOf(execution, opts.sessionMetaKey, opts.agentMetaKey, opts.workspaceMetaKey);
         try {
           const result = await client.callTool(
             {
@@ -698,6 +702,7 @@ function startConnection(ctx, config, policy, status) {
           toolCallTimeoutMs: config.toolCallTimeoutMs,
           sessionMetaKey: config.sessionMetaKey,
           agentMetaKey: config.agentMetaKey,
+          workspaceMetaKey: config.workspaceMetaKey,
           signal,
           ...config.expandTemplates ? { redact: (text) => binding.redact(text) } : {}
         }, disposers, () => isCurrent(record));
@@ -1111,6 +1116,7 @@ var Config = z.union([
     toolCallTimeoutMs: z.number().default(DEFAULT_TOOL_CALL_TIMEOUT_MS),
     sessionMetaKey: z.string().default("dsh/sessionId"),
     agentMetaKey: z.string().default("dsh/agentId"),
+    workspaceMetaKey: z.string().default("dsh/workspace"),
     startupTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS2),
     closeTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS2).default(DEFAULT_CLOSE_TIMEOUT_MS),
     expandTemplates: z.boolean().default(false),
@@ -1126,6 +1132,7 @@ var Config = z.union([
     toolCallTimeoutMs: z.number().default(DEFAULT_TOOL_CALL_TIMEOUT_MS),
     sessionMetaKey: z.string().default("dsh/sessionId"),
     agentMetaKey: z.string().default("dsh/agentId"),
+    workspaceMetaKey: z.string().default("dsh/workspace"),
     startupTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS2),
     closeTimeoutMs: z.number().min(1).max(MAX_TIMER_DELAY_MS2).default(DEFAULT_CLOSE_TIMEOUT_MS),
     expandTemplates: z.boolean().default(false),

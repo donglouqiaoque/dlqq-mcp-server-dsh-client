@@ -94,14 +94,18 @@ args: ['-Dfile.encoding=UTF-8', '-jar', '<deploy-dir>/dlqq_mcp_server.jar']
 | `closeTimeoutMs` | 否 | `5000` | 关闭传输超时 |
 | `sessionMetaKey` | 否 | `dsh/sessionId` | 会话 ID 的 `_meta` 键名；置空则不发送 |
 | `agentMetaKey` | 否 | `dsh/agentId` | Agent ID 的 `_meta` 键名；置空则不发送 |
+| `workspaceMetaKey` | 否 | `dsh/workspace` | 会话工作目录（cwd）的 `_meta` 键名；置空则不发送 |
 | `maxInstructionBytes` | 否 | `32768` | 服务器指令最大字节数 |
 | `reconnect` | 否 | 启用 | 重连策略（`enabled`/`initialDelayMs`/`maxDelayMs`/`maxAttempts`） |
 
 ## 与服务端的约定
 
-- `_meta` 键名两端必须一致（默认 `dsh/sessionId` 与 `dsh/agentId`）；
-- 服务端按「会话 × Agent」维护工作区；两个键都不提供时回退到进程级默认会话
+- `_meta` 键名两端必须一致（默认 `dsh/sessionId`、`dsh/agentId`、`dsh/workspace`）；
+- 服务端按「会话 × Agent」维护工作区；三个键都不提供时回退到进程级默认会话
   （兼容不支持多会话的客户端）；
+- `dsh/workspace` 取当前会话的 cwd（`session.header.cwd`，绝对路径，可能为空）：
+  服务端在该会话**首次收到请求**时用它初始化会话工作区（不存在/非法/位于 `.dlqq` 下则
+  静默回退到默认工作区）；会话创建时没有 cwd 时也可由宿主后续补齐；
 - 会话绑定完全由 `_meta` 驱动，无需额外初始化调用。
 
 ## 许可证
